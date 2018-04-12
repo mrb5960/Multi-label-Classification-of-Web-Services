@@ -12,6 +12,7 @@ from textblob import TextBlob
 from nltk import pos_tag
 import numpy as np
 from collections import OrderedDict
+from gensim.models import KeyedVectors
 import math
 
 def cleanData():
@@ -594,18 +595,115 @@ def getWordVectors():
 def getDocVectors():
     start = time.time()
     # make api names as indices
-    #df = pd.read_csv("final_data_w2v.csv")
+    # df = pd.read_csv("final_data_w2v.csv")
     df = pd.read_csv("tok&lem_final_data_v4_top20labels.csv")
-    #df.set_index('api_name')
+    # df.set_index('api_name')
     print df.shape
 
     tfdf = pd.read_csv("tok&lem_final_data_v4_top20labels_tfidf_1000f.csv")
     print tfdf.shape
+    # df.set_index('api_name')
+    #tf_columns = tfdf.columns.values
+
+    #name = 'word2vec_100d.bin'
+    #model = Word2Vec.load(name)
+
+    #model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
+    model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
+
+    newdf = pd.DataFrame(columns=['A'])
+
+    x = []
+    api_names = []
+    # wordvectors = []
+    for index, row in df.iterrows():
+        api_names.append(row['api_name'])
+        # api_names.append(str(index))
+        doc = word_tokenize(row['api_desc'])
+        # if len(doc) == 0:
+        #     print index
+
+        doc = [w for w in doc if w in model.wv.vocab]
+
+        #doc = [w for w in doc if w in tf_columns]
+
+        if len(doc) == 0:
+            print index
+        weightedWordVectors = []
+
+        for word in doc:
+            api_name = index
+            # try:
+            # weight = tfdf.loc[api_name, word]
+            #weight = tfdf.at[index, word]
+            # except KeyError:
+            #     weight = 0
+            #     continue
+            wordvector = model.wv[word]
+            wwv = wordvector
+            #wwv = wordvector * weight
+
+            # if wwv.size == 0:
+            #     print index
+
+            # print wordvector, ' ', weight, ' ', wwv
+            # print api_name, ' ', word, ' ', weight, ' ', wwv
+            weightedWordVectors.append(wwv)
+
+        d2v = np.mean(weightedWordVectors, axis=0)
+        # if math.isnan(d2v):
+        #     print index
+        # if d2v.size == 0:
+        #     print index
+        # print d2v.shape
+        # print d2v
+        x.append(d2v)
+
+    X = np.array(x)
+    # print x.shape
+    print X.shape
+    cols = []
+    for i in range(1, 301):
+        name = 'dim_' + str(i)
+        cols.append(name)
+
+    df.reset_index()
+    print df.columns.values
+    vecdf = pd.DataFrame(X, columns=cols)
+
+    newdf['api_name'] = df['api_name']
+    newdf = pd.concat([newdf, vecdf], axis=1)
+
+    # 20 labels
+    targets = tfdf.loc[:, 'l_analytics':'l_video']
+    newdf = pd.concat([newdf, targets], axis=1)
+    newdf = newdf.drop(['A'], axis=1)
+    print newdf.shape
+
+    opfile = 'Fasttext_d2v_and_top20labels_300d.csv'
+    newdf.to_csv(opfile, index=False)
+
+    print time.time() - start
+
+
+def getWeightedDocVectors():
+    start = time.time()
+    # make api names as indices
+    #df = pd.read_csv("final_data_w2v.csv")
+    df = pd.read_csv("tok&lem&postagged_final_data_v4_top20labels.csv")
+    #df.set_index('api_name')
+    print df.shape
+
+    tfdf = pd.read_csv("tok&lem&postagged_final_data_v4_top20labels_tfidf_1000f.csv")
+    print tfdf.shape
     #df.set_index('api_name')
     tf_columns = tfdf.columns.values
 
-    name = 'word2vec_100d.bin'
-    model = Word2Vec.load(name)
+    #name = 'word2vec_100d.bin'
+    #model = Word2Vec.load(name)
+
+    #model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
+    model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
 
     newdf = pd.DataFrame(columns=['A'])
 
@@ -656,13 +754,14 @@ def getDocVectors():
     #print x.shape
     print X.shape
     cols = []
-    for i in range(1, 101):
+    for i in range(1, 301):
         name = 'dim_' + str(i)
         cols.append(name)
 
     df.reset_index()
     print df.columns.values
     vecdf = pd.DataFrame(X, columns=cols)
+    vecdf = vecdf.round(8)
 
     newdf['api_name'] = df['api_name']
     newdf = pd.concat([newdf, vecdf], axis=1)
@@ -673,7 +772,7 @@ def getDocVectors():
     newdf = newdf.drop(['A'], axis=1)
     print newdf.shape
 
-    opfile = 'weighted_d2v_and_top20labels_100d.csv'
+    opfile = 'Fasttext_weighted_d2v_and_top20labels_300d.csv'
     newdf.to_csv(opfile, index=False)
 
     print time.time() - start
@@ -684,13 +783,14 @@ def getDocVectors():
 #getTopLabelsWithLC(20)
 #keepTopLabels()
 #keepTopLabels2()
-getTFIDF()
+#getTFIDF()
 #mergeLabels()
 #checkLabelFreq()
 #getLabelCardinality()
 #renameDuplicateCols()
 #getWordVectors()
 #getDocVectors()
+getWeightedDocVectors()
 
 '''
 for word vectors

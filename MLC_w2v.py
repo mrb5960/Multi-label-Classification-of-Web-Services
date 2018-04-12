@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from sklearn.exceptions import UndefinedMetricWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -6,6 +8,7 @@ from skmultilearn.adapt import BRkNNaClassifier, BRkNNbClassifier, MLkNN
 from skmultilearn.ensemble import RakelD, RakelO
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import LinearSVC
 from sklearn.metrics import hamming_loss, f1_score, precision_score, recall_score, zero_one_loss
 from sklearn.model_selection import cross_val_score, cross_validate
 import numpy as np
@@ -17,14 +20,14 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 start = time.time()
 
-out_file = 'output_' + str(start) + '.txt'
+out_file = 'd2v_300d_output_' + str(start) + '.txt'
 results = open(out_file, "w")
 
 for n in range(100, 101, 200):
     #n = 300
     #input_file = 'd2v_and_all_labels_' + str(n) + 'd.csv'
-    #input_file = 'd2v_and_all_labels_300d.csv'
-    input_file = 'weighted_d2v_and_top20labels_100d.csv'
+    #input_file = 'GoogleNews_d2v_and_top20labels_300d.csv'
+    input_file = 'd2v_and_top20labels_300d.csv'
     results.write('########################################################################################')
     results.write('\n'+ input_file + '\n')
     df = pd.read_csv(input_file)
@@ -35,8 +38,8 @@ for n in range(100, 101, 200):
     X = df.loc[:,'dim_1':last_dim]
 
     # 20 labels
-    y = df.loc[:,'l_analytics':'l_video']
-    #y = df.loc[:,'analytics':'tools']
+    #y = df.loc[:,'l_analytics':'l_video']
+    y = df.loc[:,'analytics':'tools']
 
     targets = y.columns.values
 
@@ -46,29 +49,32 @@ for n in range(100, 101, 200):
     br_nb = BinaryRelevance(GaussianNB())
     br_dt = BinaryRelevance(DecisionTreeClassifier())
     br_lr = BinaryRelevance(LogisticRegression())
+    br_svc = BinaryRelevance(LinearSVC())
     cc_nb = ClassifierChain(GaussianNB())
     cc_dt = ClassifierChain(DecisionTreeClassifier())
     cc_lr = ClassifierChain(LogisticRegression())
+    cc_svc = ClassifierChain(LinearSVC())
     lp_nb = LabelPowerset(GaussianNB())
     lp_dt = LabelPowerset(DecisionTreeClassifier())
     lp_lr = LabelPowerset(LogisticRegression())
+    lp_svc = LabelPowerset(LinearSVC())
     # rkd_nb = RakelD(GaussianNB(),labelset_size=2)
     # rkd_dt = RakelD(DecisionTreeClassifier(),labelset_size=2)
     # rko_nb = RakelO(GaussianNB(),labelset_size=2)
     # rko_dt = RakelO(DecisionTreeClassifier(),labelset_size=2)
 
-    #classifiers = [br_nb, br_dt, cc_nb, cc_dt, lp_nb, lp_dt, brknn_a, brknn_b, mlknn, rkd_nb, rkd_dt, rko_nb, rko_dt]
-    #classifiers = [br_nb, br_dt, cc_nb, cc_dt, lp_nb, lp_dt, brknn_a, brknn_b, mlknn]
-    classifiers = {#'Binary Relevance with Gaussian Naive Bayes' : br_nb,
-                    #'Binary Relevance with Decision Tree': br_dt,
-                   'Binary Relevance with Logistic Regression': br_lr,
-                    #'Classifier Chain with Gaussian Naive Bayes': cc_nb,
-                    #'Classifier Chain with Decision Tree': cc_dt,
-                   'Classifier Chain with Logistic Regression': cc_lr,
-                    #'Label Powerset with Gaussian Naive Bayes': lp_nb,
-                    #'Label Powerset with Decision Tree': lp_dt,
-                   'Label Powerset with Logistic Regression': lp_lr
-                   }
+    classifiers = OrderedDict([('Binary Relevance with Gaussian Naive Bayes', br_nb),
+                               ('Binary Relevance with Decision Tree', br_dt),
+                               ('Binary Relevance with Logistic Regression', br_lr),
+                               ('Binary Relevance with SVC', br_svc),
+                               ('Classifier Chain with Gaussian Naive Bayes', cc_nb),
+                               ('Classifier Chain with Decision Tree', cc_dt),
+                               ('Classifier Chain with Logistic Regression', cc_lr),
+                               ('Classifier Chain with SVC', cc_svc),
+                               ('Label Powerset with Gaussian Naive Bayes', lp_nb),
+                               ('Label Powerset with Decision Tree', lp_dt),
+                               ('Label Powerset with Logistic Regression', lp_lr),
+                               ('Label Powerset with SVC', lp_svc)])
 
     for name, classifier in classifiers.items():
         t0 = time.time()
