@@ -20,14 +20,14 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 
 start = time.time()
 
-out_file = 'd2v_300d_output_' + str(start) + '.txt'
+out_file = 'weighted_d2v_output_' + str(start) + '.txt'
 results = open(out_file, "w")
 
 for n in range(100, 101, 200):
-    #n = 300
+    n = 300
     #input_file = 'd2v_and_all_labels_' + str(n) + 'd.csv'
     #input_file = 'GoogleNews_d2v_and_top20labels_300d.csv'
-    input_file = 'd2v_and_top20labels_300d.csv'
+    input_file = 'weighted_d2v_and_top20labels_300d.csv'
     results.write('########################################################################################')
     results.write('\n'+ input_file + '\n')
     df = pd.read_csv(input_file)
@@ -38,8 +38,8 @@ for n in range(100, 101, 200):
     X = df.loc[:,'dim_1':last_dim]
 
     # 20 labels
-    #y = df.loc[:,'l_analytics':'l_video']
-    y = df.loc[:,'analytics':'tools']
+    y = df.loc[:,'l_analytics':'l_video']
+    #y = df.loc[:,'analytics':'tools']
 
     targets = y.columns.values
 

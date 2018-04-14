@@ -605,11 +605,11 @@ def getDocVectors():
     # df.set_index('api_name')
     #tf_columns = tfdf.columns.values
 
-    #name = 'word2vec_100d.bin'
-    #model = Word2Vec.load(name)
+    name = 'word2vec_300d.bin'
+    model = Word2Vec.load(name)
 
     #model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
-    model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
+    #model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
 
     newdf = pd.DataFrame(columns=['A'])
 
@@ -670,6 +670,7 @@ def getDocVectors():
     df.reset_index()
     print df.columns.values
     vecdf = pd.DataFrame(X, columns=cols)
+    vecdf = vecdf.round(8)
 
     newdf['api_name'] = df['api_name']
     newdf = pd.concat([newdf, vecdf], axis=1)
@@ -680,7 +681,7 @@ def getDocVectors():
     newdf = newdf.drop(['A'], axis=1)
     print newdf.shape
 
-    opfile = 'Fasttext_d2v_and_top20labels_300d.csv'
+    opfile = 'd2v_and_top20labels_300d.csv'
     newdf.to_csv(opfile, index=False)
 
     print time.time() - start
@@ -690,20 +691,20 @@ def getWeightedDocVectors():
     start = time.time()
     # make api names as indices
     #df = pd.read_csv("final_data_w2v.csv")
-    df = pd.read_csv("tok&lem&postagged_final_data_v4_top20labels.csv")
+    df = pd.read_csv("tok&lem_final_data_v4_top20labels.csv")
     #df.set_index('api_name')
     print df.shape
 
-    tfdf = pd.read_csv("tok&lem&postagged_final_data_v4_top20labels_tfidf_1000f.csv")
+    tfdf = pd.read_csv("tok&lem_final_data_v4_top20labels_tfidf_1000f.csv")
     print tfdf.shape
     #df.set_index('api_name')
     tf_columns = tfdf.columns.values
 
-    #name = 'word2vec_100d.bin'
-    #model = Word2Vec.load(name)
+    name = 'word2vec_300d.bin'
+    model = Word2Vec.load(name)
 
     #model = KeyedVectors.load_word2vec_format('GoogleNews-vectors-negative300.bin', binary=True)
-    model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
+    #model = KeyedVectors.load_word2vec_format('wiki-news-300d-1M.vec')
 
     newdf = pd.DataFrame(columns=['A'])
 
@@ -772,7 +773,7 @@ def getWeightedDocVectors():
     newdf = newdf.drop(['A'], axis=1)
     print newdf.shape
 
-    opfile = 'Fasttext_weighted_d2v_and_top20labels_300d.csv'
+    opfile = 'weighted_d2v_and_top20labels_300d.csv'
     newdf.to_csv(opfile, index=False)
 
     print time.time() - start
